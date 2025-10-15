@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts'
+import { CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts'
 import Map from '../components/Map'
 
 function Predictions() {
@@ -8,7 +8,7 @@ function Predictions() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [rainfallSeries, setRainfallSeries] = useState([])
-  const [waterLevelSeries, setWaterLevelSeries] = useState([])
+  const [floodChance, setFloodChance] = useState(null)
 
   useEffect(() => {
     // Simulate fetch
@@ -18,10 +18,15 @@ function Predictions() {
       const days = Array.from({ length: 14 }).map((_, idx) => ({
         day: `D${idx + 1}`,
         rainfall: Math.round(20 + Math.random() * 100),
-        water: Math.round(2 + Math.random() * 8),
+        // water level removed from UI; keep dataset simple
       }))
       setRainfallSeries(days.map(d => ({ day: d.day, value: d.rainfall })))
-      setWaterLevelSeries(days.map(d => ({ day: d.day, value: d.water })))
+      // Compute simple flood chance based on average rainfall in last 7 days
+      const lastSeven = days.slice(-7)
+      const avgRain = lastSeven.reduce((sum, d) => sum + d.rainfall, 0) / lastSeven.length
+      // Normalize to 0..1 assuming 0..120mm typical range
+      const chance = Math.max(0, Math.min(1, avgRain / 120))
+      setFloodChance(Number(chance.toFixed(2)))
       setLoading(false)
     }, 600)
     return () => clearTimeout(timer)
@@ -37,7 +42,7 @@ function Predictions() {
     <main className="page page--predictions">
       <header className="page__header">
         <h1>Predictions</h1>
-        <p>View rainfall and water level trends for selected district and date.</p>
+        <p>View rainfall trends and estimated next‑day flood chance for the selected district.</p>
       </header>
 
       <section className="panel">
@@ -63,6 +68,14 @@ function Predictions() {
 
       {!loading && !error && (
         <section className="grid grid--2">
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>Flood Chance (next day)</h3>
+            <p>
+              {floodChance === null
+                ? 'Analysis will appear here after you get predictions.'
+                : `According to past 7 days data analyzed, the flood chances in the next day are ${floodChance} (0 to 1) according to the data.`}
+            </p>
+          </div>
           <div className="card">
             <h3>Rainfall Trend (mm)</h3>
             <ResponsiveContainer width="100%" height={280}>
@@ -80,19 +93,6 @@ function Predictions() {
                 <Legend />
                 <Area type="monotone" dataKey="value" name="Rainfall" stroke="#4f46e5" fillOpacity={1} fill="url(#rain)" />
               </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="card">
-            <h3>Water Level (m)</h3>
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={waterLevelSeries} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
-                <CartesianGrid stroke="#eee" vertical={false} />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="value" name="Water Level" stroke="#10b981" strokeWidth={2} dot={false} />
-              </LineChart>
             </ResponsiveContainer>
           </div>
           <div className="card" style={{ gridColumn: '1 / -1' }}>
