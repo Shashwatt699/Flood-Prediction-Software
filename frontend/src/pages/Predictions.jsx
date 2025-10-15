@@ -73,7 +73,7 @@ function Predictions() {
                 : `According to past 7 days data analyzed, the flood chances in the next day are ${floodChance} (0 to 1) according to the data.`}
             </p>
           </div>
-          <div className="card">
+          <div className="card" style={{ gridColumn: '1 / -1', margin: '0 auto', maxWidth: 820, width: '100%' }}>
             <h3>Rainfall Trend (mm)</h3>
             <ResponsiveContainer width="100%" height={280}>
               <AreaChart data={rainfallSeries} margin={{ top: 10, right: 10, bottom: 0, left: -20 }}>
