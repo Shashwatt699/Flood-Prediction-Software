@@ -21,12 +21,9 @@ function Predictions() {
         // water level removed from UI; keep dataset simple
       }))
       setRainfallSeries(days.map(d => ({ day: d.day, value: d.rainfall })))
-      // Compute simple flood chance based on average rainfall in last 7 days
-      const lastSeven = days.slice(-7)
-      const avgRain = lastSeven.reduce((sum, d) => sum + d.rainfall, 0) / lastSeven.length
-      // Normalize to 0..1 assuming 0..120mm typical range
-      const chance = Math.max(0, Math.min(1, avgRain / 120))
-      setFloodChance(Number(chance.toFixed(2)))
+      // Temporary: randomize flood chance until backend integration
+      const randomChance = Math.random()
+      setFloodChance(Number(randomChance.toFixed(2)))
       setLoading(false)
     }, 600)
     return () => clearTimeout(timer)
